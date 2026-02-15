@@ -472,20 +472,6 @@ FROM Sale
 GROUP BY DATE(SaleDate)
 ORDER BY SaleDay DESC;
 
--- Inventory Management: for products below reorder level
-SELECT 
-    p.ProductID,
-    p.ProductName,
-    p.StockQuantity,
-    p.ReorderLevel,
-    s.SupplierName,
-    s.ContactPerson,
-    s.PhoneNumber
-FROM Product p
-JOIN Supplier s ON p.SupplierID = s.SupplierID
-WHERE p.StockQuantity < p.ReorderLevel
-ORDER BY (p.ReorderLevel - p.StockQuantity) DESC;
-
 -- Purchase Order Tracking: for pending and confirmed orders
 SELECT 
     po.OrderID,
