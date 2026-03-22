@@ -175,7 +175,6 @@ db_management_system/
 ### Reference Sources
 | Source | What was referenced |
 |--------|-------------------|
-| [B+ Trees — CMU Database Group (YouTube)](https://www.youtube.com/playlist?list=PLSE8ODhjZXjbj8BMuIrRcacnQh20hmY9g) | Understanding B+ Tree structure, split/merge rules, and separator key conventions |
 | [Python `bisect` documentation](https://docs.python.org/3/library/bisect.html) | Correct usage of `bisect_left` vs `bisect_right` for routing and leaf search |
 | [Graphviz Python docs](https://graphviz.readthedocs.io/en/stable/) | HTML-like table labels in `Digraph` nodes for styled tree rendering |
 | [tracemalloc documentation](https://docs.python.org/3/library/tracemalloc.html) | Peak memory measurement methodology |
