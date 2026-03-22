@@ -55,7 +55,7 @@ db_management_system/
 
 4. **Run all remaining cells** in order — use **Runtime → Run all** or run each cell sequentially with `Shift+Enter`.
 
-> **Note:** The benchmark cell (Section 6.1) is compute-heavy. On a free Colab CPU it may take 30–60 minutes depending on the dataset sizes chosen. On a paid Colab GPU/TPU runtime it runs significantly faster.
+> **Note:** The benchmark cell (Section 6.1) is compute-heavy.
 
 ---
 
