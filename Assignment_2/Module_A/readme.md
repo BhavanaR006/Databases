@@ -5,36 +5,6 @@ A lightweight database management system built from scratch in Python, using a *
 
 ---
 
-## Project Structure
-
-```
-db_management_system/
-├── database/                   ← Core Python package
-│   ├── __init__.py             ← Exports: BPlusTree, BPlusTreeNode, BruteForceDB,
-│   │                              Table, DatabaseManager, PerformanceAnalyzer
-│   ├── bplustree.py            ← B+ Tree implementation (insert, delete, search,
-│   │                              range query, visualisation)
-│   ├── bruteforce.py           ← O(n) list-based baseline for performance comparison
-│   ├── table.py                ← Schema-validated table wrapping BPlusTree
-│   ├── db_manager.py           ← Multi-database / multi-table manager
-│   └── performance.py          ← Automated benchmarking & memory analysis
-├── report.ipynb                ← Full report: demos, visualisations, benchmarks
-└── requirements.txt            ← Python dependencies
-```
-
-### What each file does
-
-| File | Responsibility |
-|------|---------------|
-| `bplustree.py` | Core B+ Tree — `BPlusTreeNode` and `BPlusTree` classes. Handles all splits, merges, borrows, leaf linking, and Graphviz visualisation |
-| `bruteforce.py` | `BruteForceDB` — a plain Python list storing `(key, value)` tuples. All operations are O(n). Used as the benchmark baseline |
-| `table.py` | `Table` — wraps a `BPlusTree` with a named schema (field → Python type), a designated `search_key` (primary key), and type validation on every insert/update |
-| `db_manager.py` | `DatabaseManager` — manages `{ db_name → { table_name → Table } }`. Provides create/delete/list at both database and table levels |
-| `performance.py` | `PerformanceAnalyzer` — measures insert, search, delete, range query, mixed ops, and memory usage using `time.perf_counter` and `tracemalloc` |
-| `report.ipynb` | Jupyter notebook containing live demos of all operations, Graphviz tree visualisations, and all Matplotlib benchmark plots |
-
----
-
 ## Execution Steps
 
 ### Option A — Google Colab (Recommended)
@@ -142,6 +112,36 @@ All listed in `requirements.txt`:
 | `jupyter` | 1.0.0 | Notebook server |
 
 > **System dependency (not in requirements.txt):** The `graphviz` Python package is just a wrapper — the actual Graphviz binary (`dot`) must be installed separately. On Colab this is handled automatically by the setup cell via `apt-get install graphviz`.
+
+## Project Structure
+
+```
+db_management_system/
+├── database/                   ← Core Python package
+│   ├── __init__.py             ← Exports: BPlusTree, BPlusTreeNode, BruteForceDB,
+│   │                              Table, DatabaseManager, PerformanceAnalyzer
+│   ├── bplustree.py            ← B+ Tree implementation (insert, delete, search,
+│   │                              range query, visualisation)
+│   ├── bruteforce.py           ← O(n) list-based baseline for performance comparison
+│   ├── table.py                ← Schema-validated table wrapping BPlusTree
+│   ├── db_manager.py           ← Multi-database / multi-table manager
+│   └── performance.py          ← Automated benchmarking & memory analysis
+├── report.ipynb                ← Full report: demos, visualisations, benchmarks
+└── requirements.txt            ← Python dependencies
+```
+
+### What each file does
+
+| File | Responsibility |
+|------|---------------|
+| `bplustree.py` | Core B+ Tree — `BPlusTreeNode` and `BPlusTree` classes. Handles all splits, merges, borrows, leaf linking, and Graphviz visualisation |
+| `bruteforce.py` | `BruteForceDB` — a plain Python list storing `(key, value)` tuples. All operations are O(n). Used as the benchmark baseline |
+| `table.py` | `Table` — wraps a `BPlusTree` with a named schema (field → Python type), a designated `search_key` (primary key), and type validation on every insert/update |
+| `db_manager.py` | `DatabaseManager` — manages `{ db_name → { table_name → Table } }`. Provides create/delete/list at both database and table levels |
+| `performance.py` | `PerformanceAnalyzer` — measures insert, search, delete, range query, mixed ops, and memory usage using `time.perf_counter` and `tracemalloc` |
+| `report.ipynb` | Jupyter notebook containing live demos of all operations, Graphviz tree visualisations, and all Matplotlib benchmark plots |
+
+---
 
 ---
 
