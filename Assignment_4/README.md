@@ -53,13 +53,9 @@ shard_id = int(MD5(member_id)[:8], 16) % 3
 
 ---
 
-## ⚠️ One-Time Setup — Fix Hardcoded Password
+## One-Time Setup — Fix Hardcoded Password
 
-Before running anything, open `app/__init__.py` and change **line 47** from:
-```python
-app.config["MYSQL_PASSWORD"] = "Thrisha@12"
-```
-to:
+Before running anything, open `app/__init__.py` and change **line 47** to:
 ```python
 app.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD", "")
 ```
