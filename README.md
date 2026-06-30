@@ -1,12 +1,20 @@
 # ShopStop — Outlet Management System
+
 > **CS 432 Databases · IIT Gandhinagar · 2025–26 · Track 1 · Group 15 (Nexus)**
 > A progressively built database project — from schema design to a fully sharded, distributed system.
+
 ---
+
 ## What Is This?
+
 ShopStop is a retail outlet management system developed across **four assignments** for CS 432. Each assignment layers new database concepts on top of the previous one — from a clean relational schema all the way to a horizontally sharded, distributed Flask API with ACID compliance.
+
 The system models a real retail store: members, employees, suppliers, products, categories, sales, and purchase orders — with business rules enforced at every layer.
+
 ---
+
 ## Repository Structure
+
 ```
 Databases/
 │
@@ -83,9 +91,13 @@ Databases/
 │
 └── Databases_CS432__2026_Track 1.pdf   ← Course syllabus / overview
 ```
+
 ---
+
 ## The Database Schema
+
 The ShopStop MySQL database has nine tables modelling a complete retail operation:
+
 | Table | What it stores |
 |-------|----------------|
 | `Member` | Registered customers — membership tier (Silver/Gold/Platinum), loyalty points |
@@ -97,21 +109,32 @@ The ShopStop MySQL database has nine tables modelling a complete retail operatio
 | `SaleItem` | Line items within each sale |
 | `PurchaseOrder` | Supplier restocking orders |
 | `PurchaseOrderItem` | Line items within each purchase order |
+
 Key constraints enforced in the schema: `FinalAmount = TotalAmount - DiscountAmount`, expiry date must be after manufacture date, salary and prices must be positive, loyalty points cannot go negative.
+
 ---
+
 ## Assignment 1 — Schema Design and ER Modelling
+
 **Goal:** Design and implement the full relational database from scratch.
+
 - Drew the ER diagram covering all entities, relationships, and cardinalities
 - Translated it to a normalised MySQL schema with primary keys, foreign keys, check constraints, and cascades
 - Populated sample data across all tables to support realistic queries
+
 **Run the schema:**
 ```sql
 mysql -u root -p < Assignment_1/shopstop.sql
 ```
+
 ---
+
 ## Assignment 2 — Indexing and Web Application
+
 ### Module A — B+ Tree Indexing Engine
+
 A database engine built from scratch in Python with a B+ Tree as the core index structure.
+
 | Capability | Details |
 |------------|---------|
 | B+ Tree operations | Insert, delete, exact search, range query, aggregations |
@@ -119,6 +142,7 @@ A database engine built from scratch in Python with a B+ Tree as the core index 
 | Schema-validated tables | `Table` class wraps B+ Tree with field type checking |
 | Multi-table management | `DatabaseManager` handles multiple named databases |
 | Performance benchmarking | Automated comparison against a brute-force O(n) baseline |
+
 | File | Role |
 |------|------|
 | `bplustree.py` | Core B+ Tree — splits, merges, borrows, leaf linking, Graphviz rendering |
@@ -126,23 +150,30 @@ A database engine built from scratch in Python with a B+ Tree as the core index 
 | `table.py` | Schema-validated table wrapping the B+ Tree |
 | `db_manager.py` | Multi-database / multi-table manager |
 | `performance.py` | Benchmarking — timing with `perf_counter`, memory with `tracemalloc` |
+
 **How to run (Google Colab — recommended):**
 1. Upload `Assignment_2/Module_A/db_management_system.zip` to Colab
 2. Open `report.ipynb` in Colab
 3. Run Cell 1 — installs all dependencies and sets up the environment
 4. Run all remaining cells in order
+
 **How to run (local):**
 ```bash
 sudo apt-get install graphviz        # Ubuntu/Debian
 brew install graphviz                # macOS
+
 cd Assignment_2/Module_A/db_management_system
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 jupyter notebook report.ipynb
 ```
+
 ---
+
 ### Module B — Flask REST API with RBAC
+
 A locally running web application on top of the ShopStop MySQL database.
+
 **Features:**
 - JWT-based authentication (HS256)
 - Role-based access control — Admin vs Regular User
@@ -150,49 +181,69 @@ A locally running web application on top of the ShopStop MySQL database.
 - Member portfolio page and billing counter UI
 - Security audit log (`logs/audit.log`) recording every API action
 - SQL index benchmarking notebook comparing query speed before and after indexing
+
 **Quick start:**
 ```bash
 cd Assignment_2/Module_B
 pip install -r requirements.txt
+
 # Load database
 mysql -u root -p
 > source /full/path/to/shopstop.sql
 > source /full/path/to/sql/schema_moduleB.sql
+
 # Update MySQL password in run.py (line 10), then:
 python run.py
+
 # First-time only — initialise passwords:
 curl -X POST http://127.0.0.1:5000/init-passwords
 ```
+
 Open `http://localhost:5000/login-page` in your browser.
+
 **Login credentials:**
+
 | Username | Password | Role |
 |----------|----------|------|
 | `admin` | `admin123` | Admin — full access |
 | `rajesh` | `user123` | Regular user |
 | `priya` | `user123` | Regular user |
 | `amit` | `user123` | Regular user |
+
 **Tech stack:** Python · Flask · MySQL 8.0 · PyJWT · bcrypt · Vanilla HTML/CSS/JS
+
 ---
+
 ## Assignment 3 — Transactions, WAL, and ACID
+
 ### Module A — Transaction Engine on the B+ Tree
+
 Extends the Assignment 2 B+ Tree engine with full transaction support. Four new modules added to the `database/` package:
+
 | New file | What it does |
 |----------|-------------|
 | `wal_logger.py` | **Write-Ahead Log** — every BEGIN, INSERT, UPDATE, DELETE, COMMIT, and ROLLBACK is appended to `data/wal.log` *before* touching the B+ Tree. Guarantees durability and crash recovery. |
 | `lock_manager.py` | **Two-Phase Locking (2PL)** — table-level shared (S) and exclusive (X) locks with a growing phase and shrinking phase. Concurrent transactions block on conflicting locks with a configurable timeout. |
 | `snapshot.py` | **SnapshotManager** — captures per-transaction, per-table snapshots at the start of each operation, used to restore state on rollback. |
 | `transaction_manager.py` | **TransactionManager + Transaction** — the public API. `begin()` starts a transaction, which exposes `insert()`, `update()`, `delete()`, `get()`, `commit()`, and `rollback()`. Orchestrates WAL + locks + snapshots to deliver ACID. |
+
 **ACID guarantees:**
+
 | Property | Implementation |
 |----------|---------------|
 | **Atomicity** | `rollback()` restores all tables to their pre-transaction snapshots |
 | **Consistency** | Schema validation in `Table` prevents invalid records at write time |
 | **Isolation** | 2PL ensures no two concurrent transactions simultaneously write the same table |
 | **Durability** | WAL is flushed to disk before the B+ Tree is modified; log can be replayed after a crash |
+
 **How to run:** Same as Assignment 2 Module A — open `Assignment_3/Module_A/db_management_system/report_Assignment3.ipynb` and run all cells.
+
 ---
+
 ### Module B — ACID Verification and Stress Testing
+
 A suite of test scripts that verify ACID properties and measure the Flask API under concurrent and failure conditions.
+
 | Script | What it tests |
 |--------|--------------|
 | `acid_verification.py` | Verifies all four ACID properties through targeted test cases |
@@ -202,40 +253,57 @@ A suite of test scripts that verify ACID properties and measure the Flask API un
 | `stress_test.py` | High-volume load to measure throughput and error rates |
 | `locustfile.py` | Locust-based load testing with HTML reports |
 | `run_all_tests.py` | Runs all of the above in sequence |
+
 **Run all tests:**
 ```bash
 # Flask server must be running first (python run.py in Module_B/)
+
 cd Assignment_3/Module_B/Module_B_A3
 python run_all_tests.py
 ```
+
 **Run Locust load test:**
 ```bash
 locust -f locustfile.py --host=http://127.0.0.1:5000
 # Open http://localhost:8089 to configure and launch
 ```
+
 Pre-generated Locust HTML reports are saved in `locust_reports/`.
+
 ---
+
 ## Assignment 4 — Horizontal Sharding
+
 Extends the Assignment 3 Flask app with **horizontal database sharding** — the `Member`, `Sale`, and `SaleItem` tables are distributed across 3 remote MySQL Docker nodes.
+
 ### Shard Key & Strategy
+
 **Shard Key:** `MemberID`  
 **Strategy:** Hash-based
+
 ```
 shard_id = int(MD5(member_id)[:8], 16) % 3
 ```
+
 **Why MemberID?**
 - **High cardinality** — every member has a unique ID; data spreads evenly across shards
 - **Query-aligned** — almost every API endpoint filters by MemberID
 - **Stable** — MemberIDs never change after creation
+
 **Co-location:** `Sale` and `SaleItem` are stored on the *same shard* as their `Member` — queries like "all sales for MEM001" never need cross-shard joins.
+
 ### Shard Topology
+
 | Shard | MySQL Port | phpMyAdmin | Members |
 |-------|-----------|------------|---------|
 | Shard 0 | 3307 | http://10.0.116.184:8081 | 5 rows |
 | Shard 1 | 3308 | http://10.0.116.184:8082 | 12 rows |
 | Shard 2 | 3309 | http://10.0.116.184:8083 | 3 rows |
+
 > **Note:** Shards are accessible only from the IITGN network.
+
 ### Files Changed from Assignment 3
+
 | File / Folder | Change |
 |---|---|
 | `app/shard_router.py` | **NEW** — core routing engine (`get_shard`, `get_all_shards`) |
@@ -247,26 +315,33 @@ shard_id = int(MD5(member_id)[:8], 16) % 3
 | `sql/shard_setup.sql` | **NEW** — creates Member, Sale, SaleItem, ShardMeta on each shard |
 | `migrate_to_shards.py` | **NEW** — migrates existing data from local DB to 3 remote shards |
 | `test_sharding.py` | **NEW** — 6 automated verification tests |
+
 Everything else (Products, Employees, Orders, auth) is **unchanged** from Assignment 3.
+
 ### Setup & Run
+
 **Prerequisites:**
 ```bash
 pip install flask==3.0.3 pymysql==1.1.1 PyJWT==2.8.0 bcrypt==4.1.3 requests
 ```
+
 - Local MySQL running with the ShopStop database from Assignment 3
 - Must be on IITGN network to reach remote shards at `10.0.116.184`
+
 **Before running anything — fix hardcoded passwords:**
 Open `app/__init__.py` line 47 and change to:
 ```python
 app.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD", "")
 ```
 Also update `run.py` line 13 and `migrate_to_shards.py` line 28 with your local MySQL root password.
+
 **Step 1 — Create shard tables on all 3 remote nodes:**
 ```bash
 mysql -h 10.0.116.184 -P 3307 -u Nexus -p Nexus < sql/shard_setup.sql
 mysql -h 10.0.116.184 -P 3308 -u Nexus -p Nexus < sql/shard_setup.sql
 mysql -h 10.0.116.184 -P 3309 -u Nexus -p Nexus < sql/shard_setup.sql
 ```
+
 **Step 2 — Migrate data to the 3 shards:**
 ```bash
 python migrate_to_shards.py
@@ -280,10 +355,12 @@ Expected output:
 ✓ Total members migrated: 20 / 20
 Migration complete!
 ```
+
 **Step 3 — Start the Flask app:**
 ```bash
 python run.py
 ```
+
 **Step 4 — Run automated verification (6 tests):**
 ```bash
 python test_sharding.py
@@ -296,14 +373,18 @@ python test_sharding.py
 ✓ Test 5: Data Distribution     (all 3 shards have data)
 ✓ Test 6: No Duplication        (every member on exactly 1 shard)
 ```
+
 ### Key API Endpoints
+
 **No token needed:**
 ```
 GET /api/shards/status
     → All 3 shards reachable, hostnames, member counts
+
 GET /api/shards/route?member_id=MEM001
     → Shows MD5 formula + shard decision for any MemberID
 ```
+
 **Requires admin token (`Authorization: Bearer <token>`):**
 ```
 GET /api/shards/distribution      → Member/Sale counts per shard + totals
@@ -313,6 +394,7 @@ GET /api/sales/range?from=...     → Range query across all 3 shards
 GET /api/members                  → Fan-out to all 3 shards, merged result
 POST /api/members                 → Insert routed to correct shard
 ```
+
 **Get admin token:**
 ```bash
 curl -X POST http://localhost:5000/init-passwords        # run once
@@ -321,22 +403,30 @@ curl -X POST http://localhost:5000/login \
      -d '{"user": "admin", "password": "admin123"}'
 # → {"session_token": "eyJhbGci..."}
 ```
+
 ### Scalability Trade-offs
+
 | Aspect | Design Decision |
 |--------|----------------|
 | Horizontal scaling | 3 shards handle ~1/3 data each. Adding nodes beats upgrading hardware. |
 | Consistency | Strong within one shard. Cross-shard range queries are eventually consistent. |
 | Availability | One shard down → ~33% members unavailable, other 67% keep working. |
 | Fault tolerance | Unreachable shard returns `None` instead of crashing — partial results with `degraded: true`. |
+
 ### Known Limitations
+
 1. **Hash re-balancing** — adding a 4th shard requires re-hashing and migrating all data
 2. **No distributed transactions** — cross-shard writes are not atomic
 3. **Guest sales skew** — `NULL MemberID` always routes to Shard 0; high guest traffic causes imbalance
 4. **Cross-shard aggregation** — total revenue queries require application-level merge, not a single SQL
 5. **Uneven 5/12/3 split** — expected variance at 20 members; converges to ~33%/33%/33% at scale
+
 ---
+
 ## Dependencies
+
 ### Module A — B+ Tree Engine
+
 ```
 graphviz==0.20.3
 matplotlib==3.8.2
@@ -345,8 +435,11 @@ tabulate==0.9.0
 ipykernel==6.29.0
 jupyter==1.0.0
 ```
+
 System binary also required: `graphviz` (`apt-get install graphviz` / `brew install graphviz`)
+
 ### Module B — Flask API (Assignments 2, 3 & 4)
+
 ```
 flask
 pymysql
@@ -355,36 +448,49 @@ bcrypt
 requests     # Assignment 3 & 4 testing only
 locust       # Assignment 3 load testing only
 ```
+
 Full list in each module's `requirements.txt`.
+
 ---
+
 ## Troubleshooting
+
 **`Unknown column 'OrderType'` error in MySQL**
 ```sql
 USE ShopStop;
 ALTER TABLE Sale ADD COLUMN OrderType ENUM('In-Store','Online') DEFAULT 'In-Store';
 ```
+
 **`Passwords not initialised` error**
 ```bash
 curl -X POST http://127.0.0.1:5000/init-passwords
 ```
+
 **Port 5000 already in use**  
 Change the port in `run.py`:
 ```python
 app.run(host="0.0.0.0", port=5001, debug=True)
 ```
 Then go to `http://localhost:5001/login-page`.
+
 **MySQL not running (Windows)**  
 Task Manager → Services → MySQL80 → right-click → Start
+
 **Graphviz `ExecutableNotFound` error**  
 The Python `graphviz` package is just a wrapper — the system binary must also be installed separately (see setup instructions above).
+
 **Cannot reach shards (Assignment 4)**  
 Ensure you are connected to the IITGN network. Shard hosts at `10.0.116.184` are only reachable on-campus.
+
 ---
+
 ## Assignment Progression
+
 | Assignment | Core Concept | Key Deliverable |
 |------------|-------------|-----------------|
 | Assignment 1 | ER modelling, schema design, normalisation | `shopstop.sql` — full MySQL schema |
 | Assignment 2 | B+ Tree indexing, REST APIs, JWT auth, RBAC | B+ Tree engine + Flask API |
 | Assignment 3 | Transaction management, WAL, 2PL, ACID | Transaction engine + ACID test suite |
 | Assignment 4 | Horizontal sharding, distributed data | Sharded Flask API across 3 MySQL nodes |
+
 **Course:** CS 432 — Databases, IIT Gandhinagar (2025–26, Track 1, Group 15 / Nexus)
